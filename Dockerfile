@@ -1,9 +1,9 @@
-FROM jsurf/rpi-raspbian:latest
+FROM debian:buster
 
-RUN [ "cross-build-start" ]
+# RUN [ "cross-build-start" ]
 
 ENV LANG C.UTF-8
-ENV TZ Europe/Berlin
+ENV TZ America/Chicago
 
 # add our user and group first to make sure their IDs get assigned consistently, regardless of whatever dependencies get added
 RUN groupadd -r mysql && useradd -r -g mysql mysql
@@ -11,7 +11,7 @@ RUN groupadd -r mysql && useradd -r -g mysql mysql
 # add gosu for easy step-down from root
 ENV GOSU_VERSION 1.10
 RUN set -x \
-	&& apt-get update && apt-get install -y --no-install-recommends ca-certificates wget && rm -rf /var/lib/apt/lists/* \
+	&& apt-get update && apt-get install -y --no-install-recommends ca-certificates wget gnupg2  && rm -rf /var/lib/apt/lists/* \
 	&& wget -O /usr/local/bin/gosu "https://github.com/tianon/gosu/releases/download/$GOSU_VERSION/gosu-$(dpkg --print-architecture)" \
 	&& wget -O /usr/local/bin/gosu.asc "https://github.com/tianon/gosu/releases/download/$GOSU_VERSION/gosu-$(dpkg --print-architecture).asc" \
 	&& export GNUPGHOME="$(mktemp -d)" \
@@ -60,7 +60,9 @@ RUN sed -Ei 's/^(bind-address|log)/#&/' /etc/mysql/my.cnf \
 #	&& chmod 777 /var/run/mysqld \
 #    && rm -rf /var/lib/apt/lists/*
 
-RUN [ "cross-build-end" ]
+#RUN [ "cross-build-end" ]
+
+RUN sed -e '/bind-address/ s/^#*/#/' -i /etc/mysql/mariadb.conf.d/50-server.cnf
 
 VOLUME ["/var/lib/mysql"]
 
